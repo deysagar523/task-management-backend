@@ -12,10 +12,10 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: "uploads",
-    resource_type: "image", // Specify resource type as 'image'
-    allowed_formats: ["png", "jpg", "jpeg"], // Allowed image formats
+    resource_type: "auto", // Automatically detects the resource type
+    allowed_formats: ["pdf"],
     public_id: (req, file) =>
-      file.originalname.split(".")[0] + "-" + Date.now(), // Unique public ID
+      file.originalname.split(".")[0] + "-" + Date.now(),
   },
 });
 
