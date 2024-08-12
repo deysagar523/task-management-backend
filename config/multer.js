@@ -1,46 +1,24 @@
-// config/multer.js
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const multer = require("multer");
-const path = require("path");
 
-// Set storage engine
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/"); // Folder to save uploaded files
-  },
-  filename: (req, file, cb) => {
-    // Extract file name without extension
-    const fileNameWithoutExt = path.parse(file.originalname).name;
-    // Generate a new file name with timestamp and original extension
-    cb(
-      null,
-      `${fileNameWithoutExt}-${Date.now()}${path.extname(file.originalname)}`
-    );
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "uploads",
+    resource_type: "image", // Specify resource type as 'image'
+    allowed_formats: ["png", "jpg", "jpeg"], // Allowed image formats
+    public_id: (req, file) =>
+      file.originalname.split(".")[0] + "-" + Date.now(), // Unique public ID
   },
 });
 
-// Create upload instance
-const upload = multer({
-  storage: storage,
-  limits: { fileSize: 10000000 }, // Limit file size (10MB in this case)
-  fileFilter: (req, file, cb) => {
-    checkFileType(file, cb);
-  },
-});
-
-// Check file type
-function checkFileType(file, cb) {
-  // Allowed ext
-  const filetypes = /pdf/;
-  // Check ext
-  const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-  // Check mime
-  const mimetype = filetypes.test(file.mimetype);
-
-  if (mimetype && extname) {
-    return cb(null, true);
-  } else {
-    cb("Error: PDFs Only!");
-  }
-}
+const upload = multer({ storage: storage });
 
 module.exports = upload;
